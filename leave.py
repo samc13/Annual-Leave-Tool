@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 
-import numpy as np
-
 class Leave:
-    def __init__(self, date, booked, taken, metadata, halfday):
+    def __init__(self, date, booked, taken, bankholiday, halfday):
         self.date = date
-        self.booked = bool(booked)
-        self.taken = bool(taken)
-        self.metadata = str(metadata)
-        self.halfday = bool(halfday)
+        self.booked = bool(booked.lower() == 'true')
+        self.taken = bool(taken.lower() == 'true')
+        self.bankholiday = bool(bankholiday)
+        self.halfday = bool(halfday.lower() == 'true')
     def __str__(self) -> str:
-        return f"{self.date} {self.booked} {self.taken} {self.metadata} {self.halfday}"
+        return f"{self.date} {self.booked} {self.taken} {self.bankholiday} {self.halfday}"
     
 class Allowance:
     def __init__(self, base, birthday, bonus, bought, bankHoliday) -> None:
@@ -28,12 +26,16 @@ file = open('2024_dates.csv', 'rt') # r = read mode, t = text mode (as opposed t
 header = file.readline()
 for line in file:
     columns = line.split(',')
-    leaveItems.append(Leave(columns[0], columns[1], columns[2], columns[3], columns[4]))
+    obj = Leave(columns[0], columns[1], columns[2], False, columns[4])
+    print("[DEBUG]: {}".format(obj))
+    leaveItems.append(obj)
 file.close
 
-takenLeave = [l for l in leaveItems if l.taken == True]
-bookedLeave = [l for l in leaveItems if l.taken == False and l.booked == True]
+def convertToLeaveValue(leaveItem): 
+    return 0.5 if leaveItem.halfday else 1
 
+takenLeave =  [convertToLeaveValue(l) for l in leaveItems if l.taken == True]
+bookedLeave = [convertToLeaveValue(l) for l in leaveItems if l.taken == False and l.booked == True]
 
-print("Total taken leave:  {}".format(len(takenLeave)))
-print("Total booked leave: {}".format(len(bookedLeave)))
+print("Total taken leave:  {}".format(sum(takenLeave)))
+print("Total booked leave: {}".format(sum(bookedLeave)))

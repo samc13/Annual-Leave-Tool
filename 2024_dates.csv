@@ -24,7 +24,7 @@ date,booked,taken,bh,half?,metadata
 2024-04-25,True,True,,,Peru,
 2024-04-26,True,True,,True,Peru,
 2024-05-06,false,false,true,false,May BH,
-2024-05-27,true,true,true,true,May BH,
+2024-05-27,false,false,true,true,May BH,
 2024-06-14,True,True,,False,Birthday,
 2024-08-02,True,True,,False,Wedding,
 2024-08-26,false,false,true,false,August BH,

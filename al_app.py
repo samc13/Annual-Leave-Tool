@@ -52,7 +52,10 @@ upcomingBankHolidays = sum([1 for bh in allBankHolidays if bh.isInFuture()])
 upcomingBankHolidaysBookedOff = sum([calculateValueOfDay(l) for l in leaveItems if l.isInFuture() and l.booked and l.bankholiday])
 leaveRemaining = yearAllowance.total() - regularLeaveTaken
 
+print("Total leave accumulated for year     : {}".format(yearAllowance.total()))
+print("     (Note that this excludes A/L that can still be gained by working upcoming BHs)")
 print("Used so far                          : {}".format(regularLeaveTaken))
+print("Upcoming booked annual leave         : {}".format(regularLeaveBooked))
 print("BHs remaining this year              : {}".format(upcomingBankHolidays))
 print("     of which already booked off     : {}".format(upcomingBankHolidaysBookedOff))
 print("------------------------------------")

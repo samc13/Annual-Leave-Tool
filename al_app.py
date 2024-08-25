@@ -27,13 +27,20 @@ for line in file:
     leaveItems.append(obj)
 file.close
 
+def convertBankHolidayToAccumulatedLeave(leaveItem): 
+    if leaveItem.halfday:   
+        return 0.5
+    elif leaveItem.taken:
+        return 0.0
+    return 1.0
+
 def calculateValueOfDay(leaveItem): 
     if leaveItem.halfday:   
         return 0.5
-    return 1
+    return 1.0
 
 
-allBankHolidays = [BankHoliday(l.metadata, l.date, calculateValueOfDay(l)) for l in leaveItems if l.bankholiday]
+allBankHolidays = [BankHoliday(l.metadata, l.date, convertBankHolidayToAccumulatedLeave(l)) for l in leaveItems if l.bankholiday]
 totalBankHolidays = allBankHolidays.__len__()
 
 leaveGainedFromWorkedBankHolidays = sum(bh.valueLeaveGained() for bh in allBankHolidays)

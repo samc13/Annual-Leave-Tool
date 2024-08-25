@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
+from datetime import datetime
 
 class Leave:
+    I_O_FORMAT = "%Y-%m-%d"
     def __init__(self, date, booked, taken, bankholiday, halfday, metadata):
-        self.date = date
+        self.date = datetime.strptime(date, Leave.I_O_FORMAT)
         self.booked = bool(booked.lower() == 'true')
         self.taken = bool(taken.lower() == 'true')
         self.bankholiday = bool(bankholiday.lower() == 'true')
         self.halfday = bool(halfday.lower() == 'true')
         self.metadata = metadata
     def __str__(self) -> str:
-        return f"{self.date} {self.booked} {self.taken} {self.bankholiday} {self.halfday} {self.metadata}"
+        return f"{datetime.strftime(self.date, Leave.I_O_FORMAT)} {self.booked} {self.taken} {self.bankholiday} {self.halfday} {self.metadata}"
+    def isInFuture(self) -> bool:
+        return self.date > datetime.now()
     
 class LeaveAllowance: 
     def __init__(self, category, amount):
@@ -19,13 +23,20 @@ class LeaveAllowance:
         return f"{self.category}: {self.amount}"
     
 class BankHoliday:
+    I_O_FORMAT = "%Y-%m-%d"
     def __init__(self, name, date, leaveGained, classification):
-        self.name = str(name)
+        self.name = name
         self.date = date
         self.leaveGained = float(leaveGained)
         self.classification = str(classification)
     def __str__(self) -> str:
-        return f"{self.date} ({self.leaveGained}): {self.name} {self.classification}"
+        return f"{datetime.strftime(self.date, BankHoliday.I_O_FORMAT)} ({self.valueLeaveGained()}): {self.name} {self.classification}"
+    def valueLeaveGained(self) -> float: 
+        return float(self.leaveGained if self.date < datetime.now() else 0.0)
+    def isInFuture(self) -> bool:
+        return self.date > datetime.now()
+    def isInPast(self) -> bool:
+        return self.date <= datetime.now()
     
 class YearAllowance:
     def __init__(self, base, birthday, bonus, bought, bankHoliday) -> None:
@@ -78,7 +89,7 @@ def calculateValueOfDay(leaveItem):
 allBankHolidays = [BankHoliday(l.metadata, l.date, calculateValueOfDay(l), 'leave' if l.taken else 'gain') for l in leaveItems if l.bankholiday]
 totalBankHolidays = allBankHolidays.__len__()
 
-leaveGainedFromWorkedBankHolidays = sum(bh.leaveGained for bh in allBankHolidays if bh.classification == 'gain')
+leaveGainedFromWorkedBankHolidays = sum(bh.valueLeaveGained() for bh in allBankHolidays)
 
 yearAllowance = YearAllowance(allowanceItems[0].amount, allowanceItems[1].amount, allowanceItems[2].amount, allowanceItems[3].amount, leaveGainedFromWorkedBankHolidays)
 
@@ -87,3 +98,16 @@ print("BH breakdown: \n{}".format('\n'.join("{} - {}".format(idx + 1, str(x)) fo
 print("------------------------------------")
 print("2024 Leave breakdown: {}".format(yearAllowance))
 print("------------------------------------")
+
+regularLeaveTaken = sum([calculateValueOfDay(l) for l in leaveItems if l.taken or (l.halfday and l.bankholiday)])
+regularLeaveBooked = sum([calculateValueOfDay(l) for l in leaveItems if not(l.taken) and l.booked])
+upcomingBankHolidays = sum([1 for bh in allBankHolidays if bh.isInFuture()])
+upcomingBankHolidaysBookedOff = sum([calculateValueOfDay(l) for l in leaveItems if l.isInFuture() and l.booked and l.bankholiday])
+leaveRemaining = yearAllowance.total() - regularLeaveTaken
+
+print("Used so far                          : {}".format(regularLeaveTaken))
+print("BHs remaining this year              : {}".format(upcomingBankHolidays))
+print("     of which already booked off     : {}".format(upcomingBankHolidaysBookedOff))
+print("------------------------------------")
+print("Final total (remaining, booked)      : {} ({}, {})".format(leaveRemaining - regularLeaveBooked, leaveRemaining, regularLeaveBooked))
+print("     with N more if BH worked        : {}".format(upcomingBankHolidays - upcomingBankHolidaysBookedOff))

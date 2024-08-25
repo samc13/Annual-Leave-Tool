@@ -33,7 +33,7 @@ def calculateValueOfDay(leaveItem):
     return 1
 
 
-allBankHolidays = [BankHoliday(l.metadata, l.date, calculateValueOfDay(l), 'leave' if l.taken else 'gain') for l in leaveItems if l.bankholiday]
+allBankHolidays = [BankHoliday(l.metadata, l.date, calculateValueOfDay(l)) for l in leaveItems if l.bankholiday]
 totalBankHolidays = allBankHolidays.__len__()
 
 leaveGainedFromWorkedBankHolidays = sum(bh.valueLeaveGained() for bh in allBankHolidays)

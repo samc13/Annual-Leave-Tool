@@ -1,63 +1,10 @@
 #!/usr/bin/env python3
-from datetime import datetime
+from classes.LeaveAllowance import LeaveAllowance
+from classes.Leave import Leave
+from classes.BankHoliday import BankHoliday
+from classes.YearAllowance import YearAllowance
 
-class Leave:
-    I_O_FORMAT = "%Y-%m-%d"
-    def __init__(self, date, booked, taken, bankholiday, halfday, metadata):
-        self.date = datetime.strptime(date, Leave.I_O_FORMAT)
-        self.booked = bool(booked.lower() == 'true')
-        self.taken = bool(taken.lower() == 'true')
-        self.bankholiday = bool(bankholiday.lower() == 'true')
-        self.halfday = bool(halfday.lower() == 'true')
-        self.metadata = metadata
-    def __str__(self) -> str:
-        return f"{datetime.strftime(self.date, Leave.I_O_FORMAT)} {self.booked} {self.taken} {self.bankholiday} {self.halfday} {self.metadata}"
-    def isInFuture(self) -> bool:
-        return self.date > datetime.now()
-    
-class LeaveAllowance: 
-    def __init__(self, category, amount):
-        self.category = str(category)
-        self.amount = int(amount)
-    def __str__(self) -> str:
-        return f"{self.category}: {self.amount}"
-    
-class BankHoliday:
-    I_O_FORMAT = "%Y-%m-%d"
-    def __init__(self, name, date, leaveGained, classification):
-        self.name = name
-        self.date = date
-        self.leaveGained = float(leaveGained)
-        self.classification = str(classification)
-    def __str__(self) -> str:
-        return f"{datetime.strftime(self.date, BankHoliday.I_O_FORMAT)} ({self.valueLeaveGained()}): {self.name} {self.classification}"
-    def valueLeaveGained(self) -> float: 
-        return float(self.leaveGained if self.date < datetime.now() else 0.0)
-    def isInFuture(self) -> bool:
-        return self.date > datetime.now()
-    def isInPast(self) -> bool:
-        return self.date <= datetime.now()
-    
-class YearAllowance:
-    def __init__(self, base, birthday, bonus, bought, bankHoliday) -> None:
-        self.base = int(base)
-        self.birthday = int(birthday)
-        self.bonus = int(bonus)
-        self.bought = int(bought)
-        self.bankHoliday = float(bankHoliday)
-    def total(self) -> int:
-        return self.base + self.birthday + self.bonus + self.bought + self.bankHoliday
-    def total_str(self):
-        return f"{self.total()}"
-    def __str__(self) -> str:
-        return f"""
-    Base          = {self.base}
-    Birthday      = {self.birthday}
-    Service Bonus = {self.bonus}
-    BHs (worked)  = {self.bankHoliday}
-    Purchased     = {self.bought}
-    TOTAL         = {self.total_str()}"""
-
+   
 allowanceItems = []
 
 allowanceFile = open('2024_allowance.csv', 'rt') # r = read mode, t = text mode (as opposed to binary)

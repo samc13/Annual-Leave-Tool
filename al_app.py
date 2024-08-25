@@ -7,7 +7,7 @@ from classes.YearAllowance import YearAllowance
    
 allowanceItems = []
 
-allowanceFile = open('2024_allowance.csv', 'rt') # r = read mode, t = text mode (as opposed to binary)
+allowanceFile = open('resources/2024_allowance.csv', 'rt') # r = read mode, t = text mode (as opposed to binary)
 allowanceHeader = allowanceFile.readline()
 for line in allowanceFile:
     columns = line.split(',')
@@ -18,7 +18,7 @@ allowanceFile.close
 
 leaveItems = []
 
-file = open('2024_dates.csv', 'rt') # r = read mode, t = text mode (as opposed to binary)
+file = open('resources/2024_dates.csv', 'rt') # r = read mode, t = text mode (as opposed to binary)
 header = file.readline()
 for line in file:
     columns = line.split(',')

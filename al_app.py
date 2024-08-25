@@ -50,7 +50,7 @@ yearAllowance = YearAllowance(allowanceItems[0].amount, allowanceItems[1].amount
 print("------------------------------------")
 print("BH breakdown: \n{}".format('\n'.join("{} - {}".format(idx + 1, str(x)) for idx, x in enumerate(allBankHolidays))))
 print("------------------------------------")
-print("2024 Leave breakdown: {}".format(yearAllowance))
+print("Year Leave breakdown: {}".format(yearAllowance))
 print("------------------------------------")
 
 regularLeaveTaken = sum([calculateValueOfDay(l) for l in leaveItems if l.taken or (l.halfday and l.bankholiday)])

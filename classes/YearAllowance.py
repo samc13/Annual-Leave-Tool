@@ -18,4 +18,5 @@ class YearAllowance:
     Service Bonus = {self.bonus}
     BHs (worked)  = {self.bankHoliday}
     Purchased     = {self.bought}
-    TOTAL         = {self.total_str()}"""
+    TOTAL         = {self.total_str()}
+        (Note that this excludes A/L that can still be gained by working upcoming BHs)"""

@@ -4,6 +4,7 @@ from classes.Leave import Leave
 from classes.BankHoliday import BankHoliday
 from classes.YearAllowance import YearAllowance
 import config.config as configuration
+import itertools
    
 allowanceItems = []
 
@@ -18,53 +19,48 @@ allowanceFile.close
 
 leaveItems = []
 
-file = open(configuration.ANNUAL_LEAVE_USAGE_FILEPATH, 'rt') # r = read mode, t = text mode (as opposed to binary)
-header = file.readline()
-for line in file:
+datesFile = open(configuration.ANNUAL_LEAVE_USAGE_FILEPATH, 'rt') # r = read mode, t = text mode (as opposed to binary)
+header = datesFile.readline()
+for line in datesFile:
     columns = line.split(',')
-    obj = Leave(columns[0], columns[1], columns[2], columns[3], columns[4], columns[5])
+    obj = Leave(columns[0], columns[1], columns[2], columns[3])
     #print("[DEBUG]: {}".format(obj))
     leaveItems.append(obj)
-file.close
+datesFile.close
 
-def convertBankHolidayToAccumulatedLeave(leaveItem): 
-    if leaveItem.halfday:   
-        return 0.5
-    elif leaveItem.taken:
-        return 0.0
-    return 1.0
-
-def calculateValueOfDay(leaveItem): 
-    if leaveItem.halfday:   
-        return 0.5
-    return 1.0
-
-
-allBankHolidays = [BankHoliday(l.metadata, l.date, convertBankHolidayToAccumulatedLeave(l)) for l in leaveItems if l.bankholiday]
-totalBankHolidays = allBankHolidays.__len__()
+allBankHolidays = [BankHoliday(l.metadata, l.date, l.balancechange) for l in leaveItems if l.bankholiday]
 
 leaveGainedFromWorkedBankHolidays = sum(bh.valueLeaveGained() for bh in allBankHolidays)
 
 yearAllowance = YearAllowance(allowanceItems[0].amount, allowanceItems[1].amount, allowanceItems[2].amount, allowanceItems[3].amount, leaveGainedFromWorkedBankHolidays)
 
+regularLeave = [l for l in leaveItems if not(l.isBankHoliday())]
+bankHolidayLeave = [l for l in leaveItems if l.isBankHoliday()]
+regularLeaveTaken = sum([-l.balancechange for l in regularLeave if not(l.isInFuture())])
+totalBankHolidays = sum([1 for l in leaveItems if l.isBankHoliday()])
+regularLeaveUpcoming = sum([-l.balancechange for l in regularLeave if l.isInFuture()])
+groupedLeaveIterator = itertools.groupby(regularLeave, lambda x : x.metadata) # nb iterator can only be used once
+
+print("------------------------------------")
+print("Summary of holiday used:")
+for key, group in groupedLeaveIterator:
+    print("  - {} {}".format(key, sum([x.balancechange for x in group])))
+print("Total used so far: {}".format(regularLeaveTaken))
+print("Total booked:      {}".format(regularLeaveUpcoming))
+
 print("------------------------------------")
 print("BH breakdown: \n{}".format('\n'.join("{} - {}".format(idx + 1, str(x)) for idx, x in enumerate(allBankHolidays))))
+print("    Total:      + {}".format(leaveGainedFromWorkedBankHolidays))
 print("------------------------------------")
 print("Year Leave breakdown: {}".format(yearAllowance))
 print("------------------------------------")
 
-regularLeaveTaken = sum([calculateValueOfDay(l) for l in leaveItems if l.taken or (l.halfday and l.bankholiday)])
-regularLeaveBooked = sum([calculateValueOfDay(l) for l in leaveItems if not(l.taken) and l.booked])
+regularLeaveBooked = sum([-l.balancechange for l in leaveItems if l.isInFuture()])
 upcomingBankHolidays = sum([1 for bh in allBankHolidays if bh.isInFuture()])
-upcomingBankHolidaysBookedOff = sum([calculateValueOfDay(l) for l in leaveItems if l.isInFuture() and l.booked and l.bankholiday])
-leaveRemaining = yearAllowance.total() - regularLeaveTaken
+upcomingBankHolidaysBookedOff = float(sum([1 for l in bankHolidayLeave if l.isInFuture() and l.balancechange == 0.0]))
 
-print("Total leave accumulated for year     : {}".format(yearAllowance.total()))
-print("     (Note that this excludes A/L that can still be gained by working upcoming BHs)")
-print("Used so far                          : {}".format(regularLeaveTaken))
-print("Upcoming booked annual leave         : {}".format(regularLeaveBooked))
-print("BHs remaining this year              : {}".format(upcomingBankHolidays))
-print("     of which already booked off     : {}".format(upcomingBankHolidaysBookedOff))
+print("Regular leave used so far            : {}".format(regularLeaveTaken))
+print("Upcoming booked annual leave         : {} (+ BH {})".format(regularLeaveBooked, upcomingBankHolidaysBookedOff))
+print("Total usage (incl. booked)           : {}".format(regularLeaveTaken + regularLeaveBooked))
+print("    of total accrued days            : {}".format(yearAllowance.total()))
 print("------------------------------------")
-print("Final total (remaining, booked)      : {} ({}, {})".format(leaveRemaining - regularLeaveBooked, leaveRemaining, regularLeaveBooked))
-print("     with N more if BH worked        : {}".format(upcomingBankHolidays - upcomingBankHolidaysBookedOff))
